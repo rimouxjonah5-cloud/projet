@@ -10,6 +10,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [confirmPending, setConfirmPending] = useState(false)
 
   useEffect(() => {
     if (!supabase) return
@@ -36,12 +37,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
     try {
       if (mode === 'signup') {
         if (!pseudo.trim()) throw new Error('Choisis un pseudo')
-        const { error: err } = await supabase!.auth.signUp({
+        const { data, error: err } = await supabase!.auth.signUp({
           email,
           password,
           options: { data: { pseudo: pseudo.trim() } },
         })
         if (err) throw err
+        if (!data.session) setConfirmPending(true)
       } else {
         const { error: err } = await supabase!.auth.signInWithPassword({ email, password })
         if (err) throw err
@@ -51,6 +53,24 @@ export function AuthGate({ children }: { children: ReactNode }) {
     } finally {
       setBusy(false)
     }
+  }
+
+  if (confirmPending) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center bg-gradient-to-b from-black via-red-950 to-black px-6 text-center">
+        <h1 className="text-2xl font-bold tracking-tight text-white">Vérifie ta boîte mail</h1>
+        <p className="mt-3 max-w-sm text-sm text-white/60">
+          On a envoyé un lien de confirmation à <span className="text-white">{email}</span>. Clique dessus
+          pour activer ton compte, puis reviens ici te connecter.
+        </p>
+        <button
+          onClick={() => setConfirmPending(false)}
+          className="mt-6 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm text-white/70 hover:bg-white/10"
+        >
+          Retour
+        </button>
+      </div>
+    )
   }
 
   return (
