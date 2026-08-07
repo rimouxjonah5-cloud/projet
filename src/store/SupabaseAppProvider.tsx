@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { AppContext, type AppContextValue } from './AppContext'
-import type { AppState, ChatMessage, Friend, Profile, RassoEvent } from '../types'
+import type { AppNotification, AppState, ChatMessage, Friend, Profile, RassoEvent } from '../types'
 import { avatarFor } from '../utils/avatar'
 import { AgeOnboarding } from '../components/AgeOnboarding'
 
@@ -12,6 +12,7 @@ const emptyState: AppState = {
   locations: [],
   presence: [],
   messages: [],
+  notifications: [],
 }
 
 interface ProfileRow {
@@ -48,21 +49,27 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
   const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set())
 
   const loadAll = useCallback(async (uid: string) => {
-    const [profileRes, friendshipsRes, eventsRes, presenceRes, messagesRes, locationsRes] = await Promise.all([
-      supabase!.from('profiles').select('*').eq('id', uid).single(),
-      supabase!.from('friendships').select('friend_id').eq('user_id', uid),
-      supabase!
-        .from('events')
-        .select('*, creator:profiles!events_creator_id_fkey(id, pseudo, photo_url)')
-        .order('event_date', { ascending: true }),
-      supabase!.from('presence').select('present_date').eq('user_id', uid),
-      supabase!
-        .from('messages')
-        .select('*')
-        .or(`sender_id.eq.${uid},recipient_id.eq.${uid}`)
-        .order('created_at', { ascending: true }),
-      supabase!.from('locations').select('*'),
-    ])
+    const [profileRes, friendshipsRes, eventsRes, presenceRes, messagesRes, locationsRes, notificationsRes] =
+      await Promise.all([
+        supabase!.from('profiles').select('*').eq('id', uid).single(),
+        supabase!.from('friendships').select('friend_id').eq('user_id', uid),
+        supabase!
+          .from('events')
+          .select('*, creator:profiles!events_creator_id_fkey(id, pseudo, photo_url)')
+          .order('event_date', { ascending: true }),
+        supabase!.from('presence').select('present_date').eq('user_id', uid),
+        supabase!
+          .from('messages')
+          .select('*')
+          .or(`sender_id.eq.${uid},recipient_id.eq.${uid}`)
+          .order('created_at', { ascending: true }),
+        supabase!.from('locations').select('*'),
+        supabase!
+          .from('notifications')
+          .select('*, actor:profiles!notifications_actor_id_fkey(id, pseudo, photo_url)')
+          .eq('user_id', uid)
+          .order('created_at', { ascending: false }),
+      ])
 
     const friendIds = (friendshipsRes.data ?? []).map((f) => f.friend_id as string)
     const friendsRes = friendIds.length
@@ -91,6 +98,16 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       time: new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
     }))
 
+    const notifications: AppNotification[] = (notificationsRes.data ?? []).map((n) => ({
+      id: n.id,
+      actorId: n.actor_id,
+      actorName: n.actor?.pseudo ?? 'Utilisateur',
+      actorPhoto: n.actor?.photo_url || avatarFor(n.actor?.pseudo ?? n.actor_id),
+      type: n.type,
+      read: n.read,
+      createdAt: n.created_at,
+    }))
+
     setState({
       profile: profileRes.data ? toProfile(profileRes.data) : emptyState.profile,
       friends: (friendsRes.data ?? []).map(toFriend),
@@ -98,6 +115,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       locations: (locationsRes.data ?? []).map((l) => ({ id: l.id, name: l.name, address: l.address, type: l.type })),
       presence: (presenceRes.data ?? []).map((p) => p.present_date as string),
       messages,
+      notifications,
     })
     setLoaded(true)
   }, [])
@@ -144,6 +162,44 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabase || !userId) return
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+        (payload) => {
+          const n = payload.new as { id: string; actor_id: string; type: string; read: boolean; created_at: string }
+          supabase!
+            .from('profiles')
+            .select('id, pseudo, photo_url')
+            .eq('id', n.actor_id)
+            .single()
+            .then(({ data: actor }) => {
+              setState((s) => {
+                if (s.notifications.some((existing) => existing.id === n.id)) return s
+                const notification: AppNotification = {
+                  id: n.id,
+                  actorId: n.actor_id,
+                  actorName: actor?.pseudo ?? 'Utilisateur',
+                  actorPhoto: actor?.photo_url || avatarFor(actor?.pseudo ?? n.actor_id),
+                  type: 'follow',
+                  read: n.read,
+                  createdAt: n.created_at,
+                }
+                return { ...s, notifications: [notification, ...s.notifications] }
+              })
+            })
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase!.removeChannel(channel)
+    }
+  }, [userId])
+
+  useEffect(() => {
+    if (!supabase || !userId) return
     const channel = supabase.channel('online-users', {
       config: { presence: { key: userId } },
     })
@@ -164,6 +220,12 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
   }, [userId])
 
   const isOnline: AppContextValue['isOnline'] = (id) => onlineIds.has(id)
+
+  const markNotificationsRead: AppContextValue['markNotificationsRead'] = () => {
+    if (!supabase || !userId) return
+    setState((s) => ({ ...s, notifications: s.notifications.map((n) => ({ ...n, read: true })) }))
+    supabase.from('notifications').update({ read: true }).eq('user_id', userId).eq('read', false).then()
+  }
 
   const addEvent: AppContextValue['addEvent'] = (event) => {
     if (!supabase || !userId) return
@@ -326,6 +388,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
         searchUsers,
         getUserById,
         isOnline,
+        markNotificationsRead,
       }}
     >
       {children}

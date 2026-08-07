@@ -45,6 +45,16 @@ export interface ChatMessage {
   time: string
 }
 
+export interface AppNotification {
+  id: string
+  actorId: string
+  actorName: string
+  actorPhoto: string
+  type: 'follow'
+  read: boolean
+  createdAt: string
+}
+
 export interface AppState {
   profile: Profile
   friends: Friend[]
@@ -52,4 +62,5 @@ export interface AppState {
   locations: Location[]
   presence: string[] // ISO dates where user marked "présent"
   messages: ChatMessage[]
+  notifications: AppNotification[]
 }

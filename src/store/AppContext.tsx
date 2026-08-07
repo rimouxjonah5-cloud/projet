@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import type { AppState, ChatMessage, Friend, Profile, RassoEvent } from '../types'
+import type { AppNotification, AppState, ChatMessage, Friend, Profile, RassoEvent } from '../types'
 import { seedDiscoverableUsers, seedState } from './seed'
 
 const STORAGE_KEY = 'rasso-app-state-v1'
@@ -7,7 +7,7 @@ const STORAGE_KEY = 'rasso-app-state-v1'
 function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as AppState
+    if (raw) return { ...seedState, ...JSON.parse(raw) } as AppState
   } catch {
     // ignore corrupt storage
   }
@@ -27,6 +27,7 @@ export interface AppContextValue {
   searchUsers: (query: string) => Promise<Friend[]>
   getUserById: (id: string) => Promise<Friend | null>
   isOnline: (id: string) => boolean
+  markNotificationsRead: () => void
 }
 
 export const AppContext = createContext<AppContextValue | null>(null)
@@ -75,7 +76,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const user = discoverable.find((u) => u.id === friendId)
       if (!user) return s
       setDiscoverable((d) => d.filter((u) => u.id !== friendId))
-      return { ...s, friends: [...s.friends, user] }
+      const notification: AppNotification = {
+        id: `n${Date.now()}`,
+        actorId: user.id,
+        actorName: user.pseudo,
+        actorPhoto: user.photoUrl,
+        type: 'follow',
+        read: false,
+        createdAt: new Date().toISOString(),
+      }
+      return { ...s, friends: [...s.friends, user], notifications: [notification, ...s.notifications] }
     })
   }
 
@@ -116,6 +126,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return true
   }
 
+  function markNotificationsRead() {
+    setState((s) => ({ ...s, notifications: s.notifications.map((n) => ({ ...n, read: true })) }))
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -131,6 +145,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         searchUsers,
         getUserById,
         isOnline,
+        markNotificationsRead,
       }}
     >
       {children}

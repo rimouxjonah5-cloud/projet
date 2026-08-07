@@ -85,4 +85,5 @@ export const seedState: AppState = {
     { id: 'm2', friendId: 'f1', from: 'me', text: "Ouais carrément, j'amène la GTI 👍", time: '10:15' },
     { id: 'm3', friendId: 'f2', from: 'them', text: "N'oublie pas ton équipement pour dimanche !", time: '09:00' },
   ],
+  notifications: [],
 }

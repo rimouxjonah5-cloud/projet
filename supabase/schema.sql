@@ -59,7 +59,7 @@ create policy "Chacun voit ses propres amitiés"
   to authenticated
   using (auth.uid() = user_id or auth.uid() = friend_id);
 
--- Ajoute une amitié dans les deux sens en une seule fois
+-- Ajoute une amitié dans les deux sens en une seule fois, et notifie la personne suivie
 create function public.add_friend(target_id uuid)
 returns void
 language plpgsql
@@ -73,6 +73,7 @@ begin
     on conflict do nothing;
   insert into public.friendships (user_id, friend_id) values (target_id, auth.uid())
     on conflict do nothing;
+  insert into public.notifications (user_id, actor_id, type) values (target_id, auth.uid(), 'follow');
 end;
 $$;
 
@@ -87,6 +88,30 @@ begin
   delete from public.friendships where user_id = target_id and friend_id = auth.uid();
 end;
 $$;
+
+-- ============ NOTIFICATIONS ============
+create table public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  actor_id uuid not null references public.profiles(id) on delete cascade,
+  type text not null default 'follow',
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table public.notifications enable row level security;
+
+create policy "Chacun voit ses propres notifications"
+  on public.notifications for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+create policy "Chacun marque ses propres notifications comme lues"
+  on public.notifications for update
+  to authenticated
+  using (auth.uid() = user_id);
+
+alter publication supabase_realtime add table public.notifications;
 
 -- ============ EVENTS (Rasso) ============
 create table public.events (
