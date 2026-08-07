@@ -26,6 +26,7 @@ export function Create() {
   const [address, setAddress] = useState(navState.presetAddress ?? '')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+  const [endTime, setEndTime] = useState('')
   const [rules, setRules] = useState('')
   const [conditions, setConditions] = useState('')
   const [showLocations, setShowLocations] = useState(false)
@@ -34,8 +35,8 @@ export function Create() {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!title || !address || !date || !time) return
-    addEvent({ title, type, address, date, time, rules, conditions })
+    if (!title || !address || !date || !time || !endTime) return
+    addEvent({ title, type, address, date, time, endTime, rules, conditions })
     navigate('/')
   }
 
@@ -83,28 +84,42 @@ export function Create() {
           />
         </div>
 
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
+            Date
+          </label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            min={new Date().toISOString().slice(0, 10)}
+            required
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-red-500 [color-scheme:dark]"
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
-              Date
+              Heure de début
             </label>
             <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              min={new Date().toISOString().slice(0, 10)}
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
               required
               className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-red-500 [color-scheme:dark]"
             />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
-              Heure
+              Heure de fin
             </label>
             <input
               type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              min={time || undefined}
               required
               className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-red-500 [color-scheme:dark]"
             />

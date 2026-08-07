@@ -132,6 +132,7 @@ export function Agenda() {
                 </p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white/60">
                   <Clock size={12} /> {ev.time}
+                  {ev.endTime && ` – ${ev.endTime}`}
                 </p>
               </div>
             ))}

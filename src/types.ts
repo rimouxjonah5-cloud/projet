@@ -22,7 +22,8 @@ export interface RassoEvent {
   type: VehicleType
   address: string
   date: string // ISO yyyy-MM-dd
-  time: string // HH:mm
+  time: string // HH:mm, heure de début
+  endTime: string // HH:mm, heure de fin
   rules: string
   conditions: string
   creatorId: string

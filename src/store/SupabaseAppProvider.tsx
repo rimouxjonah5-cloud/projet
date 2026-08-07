@@ -86,6 +86,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       address: e.address,
       date: e.event_date,
       time: (e.event_time as string).slice(0, 5),
+      endTime: e.end_time ? (e.end_time as string).slice(0, 5) : '',
       rules: e.rules || '',
       conditions: e.conditions || '',
       creatorId: e.creator_id,
@@ -246,6 +247,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
         address: event.address,
         event_date: event.date,
         event_time: event.time,
+        end_time: event.endTime,
         rules: event.rules,
         conditions: event.conditions,
       })
@@ -260,6 +262,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
           address: data.address,
           date: data.event_date,
           time: (data.event_time as string).slice(0, 5),
+          endTime: data.end_time ? (data.end_time as string).slice(0, 5) : '',
           rules: data.rules || '',
           conditions: data.conditions || '',
           creatorId: data.creator_id,

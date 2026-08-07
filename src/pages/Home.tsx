@@ -55,7 +55,10 @@ export function Home() {
         )}
 
         {events.map((ev) => {
-          const isOngoing = ev.date === today && new Date(`${ev.date}T${ev.time}`) <= now
+          const isOngoing =
+            ev.date === today &&
+            new Date(`${ev.date}T${ev.time}`) <= now &&
+            (!ev.endTime || now <= new Date(`${ev.date}T${ev.endTime}`))
 
           return (
             <article
@@ -101,6 +104,7 @@ export function Home() {
                 <p className="flex items-center gap-2">
                   <Clock size={15} className="text-red-400 shrink-0" />
                   {ev.time}
+                  {ev.endTime && ` – ${ev.endTime}`}
                 </p>
 
                 {ev.rules && (

@@ -122,6 +122,7 @@ create table public.events (
   address text not null,
   event_date date not null,
   event_time time not null,
+  end_time time,
   rules text default '',
   conditions text default '',
   created_at timestamptz not null default now()
