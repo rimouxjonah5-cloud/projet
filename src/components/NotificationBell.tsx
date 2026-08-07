@@ -20,11 +20,9 @@ export function NotificationBell() {
   }, [])
 
   function toggle() {
-    setOpen((o) => {
-      const next = !o
-      if (next && unreadCount > 0) markNotificationsRead()
-      return next
-    })
+    const next = !open
+    setOpen(next)
+    if (next && unreadCount > 0) markNotificationsRead()
   }
 
   return (

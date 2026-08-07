@@ -47,6 +47,9 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(emptyState)
   const [loaded, setLoaded] = useState(false)
   const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set())
+  // Distinct de `state.profile.age === 0` : un âge de 0 an est une valeur valide,
+  // seule l'absence d'âge en base (null) doit redéclencher l'onboarding.
+  const [needsOnboarding, setNeedsOnboarding] = useState(false)
 
   const loadAll = useCallback(async (uid: string) => {
     const [profileRes, friendshipsRes, eventsRes, presenceRes, messagesRes, locationsRes, notificationsRes] =
@@ -117,6 +120,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       messages,
       notifications,
     })
+    setNeedsOnboarding(!profileRes.data || profileRes.data.age == null)
     setLoaded(true)
   }, [])
 
@@ -139,7 +143,11 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
           const m = payload.new as { id: string; sender_id: string; recipient_id: string; text: string; created_at: string }
-          if (m.sender_id !== userId && m.recipient_id !== userId) return
+          // Les messages qu'on vient d'envoyer soi-même sont déjà affichés de façon
+          // optimiste par sendMessage : les traiter ici créerait un doublon tant que
+          // l'id temporaire n'a pas encore été remplacé par l'id réel.
+          if (m.sender_id === userId) return
+          if (m.recipient_id !== userId) return
           setState((s) => {
             if (s.messages.some((existing) => existing.id === m.id)) return s
             const msg: ChatMessage = {
@@ -348,23 +356,29 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       .then()
   }
 
-  const searchUsers: AppContextValue['searchUsers'] = async (query) => {
-    if (!supabase || !userId) return []
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .ilike('pseudo', `%${query}%`)
-      .neq('id', userId)
-      .limit(10)
-    const friendIds = new Set(state.friends.map((f) => f.id))
-    return (data ?? []).filter((row) => !friendIds.has(row.id)).map(toFriend)
-  }
+  const searchUsers: AppContextValue['searchUsers'] = useCallback(
+    async (query) => {
+      if (!supabase || !userId) return []
+      // Échappe les métacaractères ILIKE (% et _) pour qu'une recherche contenant
+      // ces caractères ne se transforme pas en joker involontaire côté SQL.
+      const escaped = query.replace(/[%_\\]/g, (c) => `\\${c}`)
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .ilike('pseudo', `%${escaped}%`)
+        .neq('id', userId)
+        .limit(10)
+      const friendIds = new Set(state.friends.map((f) => f.id))
+      return (data ?? []).filter((row) => !friendIds.has(row.id)).map(toFriend)
+    },
+    [userId, state.friends],
+  )
 
-  const getUserById: AppContextValue['getUserById'] = async (id) => {
+  const getUserById: AppContextValue['getUserById'] = useCallback(async (id) => {
     if (!supabase) return null
     const { data } = await supabase.from('profiles').select('*').eq('id', id).single()
     return data ? toFriend(data) : null
-  }
+  }, [])
 
   if (!loaded) {
     return (
@@ -374,8 +388,15 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     )
   }
 
-  if (!state.profile.age) {
-    return <AgeOnboarding onSubmit={(age) => updateProfile({ ...state.profile, age })} />
+  if (needsOnboarding) {
+    return (
+      <AgeOnboarding
+        onSubmit={(age) => {
+          setNeedsOnboarding(false)
+          updateProfile({ ...state.profile, age })
+        }}
+      />
+    )
   }
 
   return (

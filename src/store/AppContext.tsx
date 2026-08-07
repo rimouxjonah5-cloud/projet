@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { AppNotification, AppState, ChatMessage, Friend, Profile, RassoEvent } from '../types'
 import { seedDiscoverableUsers, seedState } from './seed'
 
@@ -34,7 +34,11 @@ export const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(loadState)
-  const [discoverable, setDiscoverable] = useState<Friend[]>(seedDiscoverableUsers)
+  // On exclut les amis déjà ajoutés (persistés dans `state`) pour éviter qu'ils
+  // ne réapparaissent dans "Trouver des amis" après un rechargement de page.
+  const [discoverable, setDiscoverable] = useState<Friend[]>(() =>
+    seedDiscoverableUsers.filter((u) => !state.friends.some((f) => f.id === u.id)),
+  )
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
@@ -71,11 +75,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   function addFriend(friendId: string) {
+    const user = discoverable.find((u) => u.id === friendId)
+    if (!user) return
     setState((s) => {
       if (s.friends.some((f) => f.id === friendId)) return s
-      const user = discoverable.find((u) => u.id === friendId)
-      if (!user) return s
-      setDiscoverable((d) => d.filter((u) => u.id !== friendId))
       const notification: AppNotification = {
         id: `n${Date.now()}`,
         actorId: user.id,
@@ -87,6 +90,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return { ...s, friends: [...s.friends, user], notifications: [notification, ...s.notifications] }
     })
+    setDiscoverable((d) => d.filter((u) => u.id !== friendId))
   }
 
   function removeFriend(friendId: string) {
@@ -108,19 +112,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, profile }))
   }
 
-  async function searchUsers(query: string): Promise<Friend[]> {
-    const q = query.trim().toLowerCase()
-    if (!q) return []
-    return discoverable.filter((f) => f.pseudo.toLowerCase().includes(q))
-  }
+  const searchUsers = useCallback(
+    async (query: string): Promise<Friend[]> => {
+      const q = query.trim().toLowerCase()
+      if (!q) return []
+      return discoverable.filter((f) => f.pseudo.toLowerCase().includes(q))
+    },
+    [discoverable],
+  )
 
-  async function getUserById(id: string): Promise<Friend | null> {
-    return (
-      state.friends.find((f) => f.id === id) ??
-      discoverable.find((f) => f.id === id) ??
-      null
-    )
-  }
+  const getUserById = useCallback(
+    async (id: string): Promise<Friend | null> => {
+      return state.friends.find((f) => f.id === id) ?? discoverable.find((f) => f.id === id) ?? null
+    },
+    [state.friends, discoverable],
+  )
 
   function isOnline() {
     return true
