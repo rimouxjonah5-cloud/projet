@@ -65,3 +65,53 @@ button {
     background-position: 0% 50%;
   }
 }
+
+/* Fond plein écran desktop (voiture + pilote) derrière l'app mobile centrée */
+.ghost-backdrop {
+  background:
+    radial-gradient(120% 90% at 50% 105%, rgba(120, 10, 10, 0.35), transparent 60%),
+    radial-gradient(140% 100% at 50% 0%, #1a0505 0%, #050505 45%, #000 100%);
+}
+
+@keyframes ghost-beam-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.ghost-backdrop-beam {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 160vmax;
+  height: 160vmax;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(255, 40, 40, 0) 300deg,
+    rgba(255, 60, 60, 0.16) 330deg,
+    rgba(255, 90, 90, 0.28) 345deg,
+    rgba(255, 40, 40, 0) 360deg
+  );
+  animation: ghost-beam-spin 100s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ghost-backdrop-beam {
+    animation: none;
+  }
+}
+
+.ghost-backdrop-scene {
+  position: absolute;
+  bottom: 4vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(64vw, 1100px);
+  aspect-ratio: 900 / 500;
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.6));
+}
