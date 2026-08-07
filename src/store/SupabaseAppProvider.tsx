@@ -304,6 +304,18 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const sendMessage: AppContextValue['sendMessage'] = (friendId, text) => {
     if (!supabase || !userId) return
+
+    // Affichage immédiat, sans attendre la réponse du serveur
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
+      friendId,
+      from: 'me',
+      text,
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+    }
+    setState((s) => ({ ...s, messages: [...s.messages, optimisticMsg] }))
+
     supabase
       .from('messages')
       .insert({ sender_id: userId, recipient_id: friendId, text })
@@ -311,17 +323,10 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       .single()
       .then(({ data }) => {
         if (!data) return
-        setState((s) => {
-          if (s.messages.some((m) => m.id === data.id)) return s
-          const msg: ChatMessage = {
-            id: data.id,
-            friendId,
-            from: 'me',
-            text: data.text,
-            time: new Date(data.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-          }
-          return { ...s, messages: [...s.messages, msg] }
-        })
+        setState((s) => ({
+          ...s,
+          messages: s.messages.map((m) => (m.id === tempId ? { ...m, id: data.id } : m)),
+        }))
       })
   }
 
