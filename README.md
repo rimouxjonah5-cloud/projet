@@ -21,6 +21,18 @@ rejoindre des rassemblements ("Rasso") voiture, moto ou mixte.
 Les données (profil, amis, événements, messages, présence) sont conservées en local
 (`localStorage`) — aucun backend n'est requis pour lancer l'application.
 
+## Installation sur téléphone (PWA)
+
+L'application est une **Progressive Web App** : une fois déployée sur une URL accessible
+en HTTPS, n'importe qui peut l'installer sur son téléphone sans passer par un store.
+
+- **Android (Chrome)** : ouvrir le lien → menu ⋮ → "Ajouter à l'écran d'accueil" /
+  "Installer l'application".
+- **iPhone (Safari)** : ouvrir le lien → bouton Partager → "Sur l'écran d'accueil".
+
+Une fois installée, Rasso apparaît avec sa propre icône, s'ouvre en plein écran (sans
+barre de navigateur) et reste disponible hors connexion grâce à son service worker.
+
 ## Démarrer
 
 ```bash
@@ -32,4 +44,5 @@ npm run dev
 
 ```bash
 npm run build
+npm run preview
 ```
