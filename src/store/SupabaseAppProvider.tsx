@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import { AppContext, type AppContextValue } from './AppContext'
 import type { AppState, ChatMessage, Friend, Profile, RassoEvent } from '../types'
 import { avatarFor } from '../utils/avatar'
+import { AgeOnboarding } from '../components/AgeOnboarding'
 
 const emptyState: AppState = {
   profile: { pseudo: '', age: 0, photoUrl: '', bannerUrl: '', description: '', carPhotoUrl: '', motoPhotoUrl: '' },
@@ -274,6 +275,10 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
         <p className="text-sm text-white/40">Chargement de RassoGo...</p>
       </div>
     )
+  }
+
+  if (!state.profile.age) {
+    return <AgeOnboarding onSubmit={(age) => updateProfile({ ...state.profile, age })} />
   }
 
   return (
