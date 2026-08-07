@@ -1,4 +1,4 @@
-# Rasso
+# RassoGo
 
 Application mobile-first (React + Vite + TypeScript + Tailwind CSS) pour organiser et
 rejoindre des rassemblements ("Rasso") voiture, moto ou mixte.

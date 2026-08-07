@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Served from https://<user>.github.io/projet/ in production (GitHub Pages subpath).
-const base = process.env.GITHUB_PAGES ? '/projet/' : '/'
+// Served from https://<user>.github.io/RassoGo/ in production (GitHub Pages subpath).
+const base = process.env.GITHUB_PAGES ? '/RassoGo/' : '/'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -16,8 +16,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Rasso',
-        short_name: 'Rasso',
+        name: 'RassoGo',
+        short_name: 'RassoGo',
         description:
           "Organise et rejoins des Rasso voiture, moto ou mixte : agenda, création d'événements, messagerie et profil.",
         lang: 'fr',
