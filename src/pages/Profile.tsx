@@ -3,6 +3,7 @@ import { Camera, Car, Bike, Pencil, Check, LogOut } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import type { Profile as ProfileType } from '../types'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
+import { VerifiedName } from '../components/VerifiedName'
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -103,7 +104,9 @@ export function Profile() {
               className="w-full rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-lg font-bold text-white outline-none focus:border-red-500"
             />
           ) : (
-            <h1 className="text-lg font-bold text-white">{profile.pseudo}</h1>
+            <h1 className="text-lg font-bold text-white">
+              <VerifiedName name={profile.pseudo} />
+            </h1>
           )}
 
           {editing ? (

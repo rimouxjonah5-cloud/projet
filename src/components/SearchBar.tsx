@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Search, UserPlus, MapPin, X } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import { useNavigate } from 'react-router-dom'
+import { VerifiedName } from './VerifiedName'
 import type { Friend } from '../types'
 
 export function SearchBar() {
@@ -96,7 +97,7 @@ export function SearchBar() {
                   className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-white/5"
                 >
                   <img src={f.photoUrl} alt="" className="h-8 w-8 rounded-full" />
-                  <span className="text-sm text-white">{f.pseudo}</span>
+                  <VerifiedName name={f.pseudo} className="text-sm text-white" />
                 </button>
               ))}
             </div>
@@ -108,7 +109,7 @@ export function SearchBar() {
               {discoverResults.map((f) => (
                 <div key={f.id} className="flex items-center gap-3 rounded-xl px-2 py-2">
                   <img src={f.photoUrl} alt="" className="h-8 w-8 rounded-full" />
-                  <span className="flex-1 text-sm text-white">{f.pseudo}</span>
+                  <VerifiedName name={f.pseudo} className="flex-1 text-sm text-white" />
                   <button
                     onClick={() => {
                       addFriend(f.id)

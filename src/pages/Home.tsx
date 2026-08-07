@@ -1,4 +1,5 @@
 import { Home as HouseIcon, MapPin, Clock, CalendarDays, ScrollText, MessageCircle, Trash2 } from 'lucide-react'
+import { VerifiedName } from '../components/VerifiedName'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
@@ -118,7 +119,9 @@ export function Home() {
               <div className="flex items-center justify-between border-t border-white/10 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <img src={ev.creatorPhoto} alt="" className="h-7 w-7 rounded-full" />
-                  <span className="text-xs text-white/70">Organisé par {ev.creatorName}</span>
+                  <span className="text-xs text-white/70">
+                    Organisé par <VerifiedName name={ev.creatorName} />
+                  </span>
                 </div>
                 {ev.creatorId !== myId && (
                   <button

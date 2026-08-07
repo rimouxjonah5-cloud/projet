@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { useApp } from '../store/AppContext'
+import { VerifiedName } from '../components/VerifiedName'
 
 export function Messages() {
   const { state } = useApp()
@@ -32,7 +33,7 @@ export function Messages() {
               >
                 <img src={f.photoUrl} alt="" className="h-11 w-11 rounded-full" />
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-medium text-white">{f.pseudo}</span>
+                  <VerifiedName name={f.pseudo} className="block text-sm font-medium text-white" />
                   <span className="block truncate text-xs text-white/50">
                     {last ? last.text : 'Dis bonjour 👋'}
                   </span>

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Send } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import { avatarFor } from '../utils/avatar'
+import { VerifiedName } from '../components/VerifiedName'
 import type { Friend } from '../types'
 
 export function Chat() {
@@ -47,7 +48,7 @@ export function Chat() {
           <ArrowLeft size={20} />
         </button>
         <img src={person.photoUrl} alt="" className="h-9 w-9 rounded-full" />
-        <span className="text-sm font-semibold text-white">{person.pseudo}</span>
+        <VerifiedName name={person.pseudo} className="text-sm font-semibold text-white" />
       </div>
 
       <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">

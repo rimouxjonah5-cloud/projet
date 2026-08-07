@@ -36,3 +36,32 @@ button {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+@keyframes ghost-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.ghost-name {
+  background-image: linear-gradient(90deg, #ff2323, #1a1a1a, #ff2323, #7a0000, #ff2323);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 4px rgba(255, 35, 35, 0.5));
+  animation: ghost-shift 3.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ghost-name {
+    animation: none;
+    background-position: 0% 50%;
+  }
+}
