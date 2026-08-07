@@ -4,11 +4,12 @@ import { ArrowLeft, Send } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import { avatarFor } from '../utils/avatar'
 import { VerifiedName } from '../components/VerifiedName'
+import { Avatar } from '../components/Avatar'
 import type { Friend } from '../types'
 
 export function Chat() {
   const { friendId } = useParams<{ friendId: string }>()
-  const { state, sendMessage, getUserById } = useApp()
+  const { state, sendMessage, getUserById, isOnline } = useApp()
   const navigate = useNavigate()
   const [text, setText] = useState('')
   const [person, setPerson] = useState<Friend | null>(null)
@@ -47,7 +48,7 @@ export function Chat() {
         <button onClick={() => navigate(-1)} className="text-white/60 hover:text-white" aria-label="Retour">
           <ArrowLeft size={20} />
         </button>
-        <img src={person.photoUrl} alt="" className="h-9 w-9 rounded-full" />
+        <Avatar src={person.photoUrl} size="h-9 w-9" online={isOnline(person.id)} />
         <VerifiedName name={person.pseudo} className="text-sm font-semibold text-white" />
       </div>
 

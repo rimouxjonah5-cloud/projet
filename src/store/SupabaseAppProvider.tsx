@@ -45,6 +45,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null)
   const [state, setState] = useState<AppState>(emptyState)
   const [loaded, setLoaded] = useState(false)
+  const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set())
 
   const loadAll = useCallback(async (uid: string) => {
     const [profileRes, friendshipsRes, eventsRes, presenceRes, messagesRes, locationsRes] = await Promise.all([
@@ -140,6 +141,29 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       supabase!.removeChannel(channel)
     }
   }, [userId])
+
+  useEffect(() => {
+    if (!supabase || !userId) return
+    const channel = supabase.channel('online-users', {
+      config: { presence: { key: userId } },
+    })
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        setOnlineIds(new Set(Object.keys(channel.presenceState())))
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          channel.track({ online_at: new Date().toISOString() })
+        }
+      })
+
+    return () => {
+      supabase!.removeChannel(channel)
+    }
+  }, [userId])
+
+  const isOnline: AppContextValue['isOnline'] = (id) => onlineIds.has(id)
 
   const addEvent: AppContextValue['addEvent'] = (event) => {
     if (!supabase || !userId) return
@@ -301,6 +325,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
         updateProfile,
         searchUsers,
         getUserById,
+        isOnline,
       }}
     >
       {children}

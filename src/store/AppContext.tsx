@@ -26,6 +26,7 @@ export interface AppContextValue {
   updateProfile: (profile: Profile) => void
   searchUsers: (query: string) => Promise<Friend[]>
   getUserById: (id: string) => Promise<Friend | null>
+  isOnline: (id: string) => boolean
 }
 
 export const AppContext = createContext<AppContextValue | null>(null)
@@ -111,6 +112,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  function isOnline() {
+    return true
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -125,6 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateProfile,
         searchUsers,
         getUserById,
+        isOnline,
       }}
     >
       {children}

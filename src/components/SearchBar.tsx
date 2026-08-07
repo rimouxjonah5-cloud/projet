@@ -3,10 +3,11 @@ import { Search, UserPlus, MapPin, X } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import { useNavigate } from 'react-router-dom'
 import { VerifiedName } from './VerifiedName'
+import { Avatar } from './Avatar'
 import type { Friend } from '../types'
 
 export function SearchBar() {
-  const { state, addFriend, searchUsers } = useApp()
+  const { state, addFriend, searchUsers, isOnline } = useApp()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -96,7 +97,7 @@ export function SearchBar() {
                   }}
                   className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-white/5"
                 >
-                  <img src={f.photoUrl} alt="" className="h-8 w-8 rounded-full" />
+                  <Avatar src={f.photoUrl} size="h-8 w-8" online={isOnline(f.id)} />
                   <VerifiedName name={f.pseudo} className="text-sm text-white" />
                 </button>
               ))}
@@ -108,7 +109,7 @@ export function SearchBar() {
               <p className="px-2 py-1 text-xs uppercase tracking-wide text-white/40">Trouver des amis</p>
               {discoverResults.map((f) => (
                 <div key={f.id} className="flex items-center gap-3 rounded-xl px-2 py-2">
-                  <img src={f.photoUrl} alt="" className="h-8 w-8 rounded-full" />
+                  <Avatar src={f.photoUrl} size="h-8 w-8" online={isOnline(f.id)} />
                   <VerifiedName name={f.pseudo} className="flex-1 text-sm text-white" />
                   <button
                     onClick={() => {

@@ -2,9 +2,10 @@ import { useNavigate } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import { VerifiedName } from '../components/VerifiedName'
+import { Avatar } from '../components/Avatar'
 
 export function Messages() {
-  const { state } = useApp()
+  const { state, isOnline } = useApp()
   const navigate = useNavigate()
 
   function lastMessage(friendId: string) {
@@ -31,7 +32,7 @@ export function Messages() {
                 onClick={() => navigate(`/messages/${f.id}`)}
                 className="flex items-center gap-3 rounded-xl px-2 py-3 text-left hover:bg-white/5"
               >
-                <img src={f.photoUrl} alt="" className="h-11 w-11 rounded-full" />
+                <Avatar src={f.photoUrl} size="h-11 w-11" online={isOnline(f.id)} />
                 <span className="min-w-0 flex-1">
                   <VerifiedName name={f.pseudo} className="block text-sm font-medium text-white" />
                   <span className="block truncate text-xs text-white/50">
