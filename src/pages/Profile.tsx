@@ -1,7 +1,8 @@
 import { useRef, useState, type ChangeEvent } from 'react'
-import { Camera, Car, Bike, Pencil, Check } from 'lucide-react'
+import { Camera, Car, Bike, Pencil, Check, LogOut } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import type { Profile as ProfileType } from '../types'
+import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -183,6 +184,15 @@ export function Profile() {
             )}
           </div>
         </div>
+
+        {isSupabaseConfigured && (
+          <button
+            onClick={() => supabase!.auth.signOut()}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 py-2.5 text-sm font-medium text-white/70 hover:bg-white/10"
+          >
+            <LogOut size={15} /> Se déconnecter
+          </button>
+        )}
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import type { AppState, ChatMessage, Profile, RassoEvent } from '../types'
-import { seedState } from './seed'
+import type { AppState, ChatMessage, Friend, Profile, RassoEvent } from '../types'
+import { seedDiscoverableUsers, seedState } from './seed'
 
 const STORAGE_KEY = 'rasso-app-state-v1'
 
@@ -14,7 +14,7 @@ function loadState(): AppState {
   return seedState
 }
 
-interface AppContextValue {
+export interface AppContextValue {
   state: AppState
   addEvent: (event: Omit<RassoEvent, 'id' | 'creatorId' | 'creatorName' | 'creatorPhoto'>) => void
   togglePresence: (date: string) => void
@@ -22,12 +22,15 @@ interface AppContextValue {
   removeFriend: (friendId: string) => void
   sendMessage: (friendId: string, text: string) => void
   updateProfile: (profile: Profile) => void
+  searchUsers: (query: string) => Promise<Friend[]>
+  getUserById: (id: string) => Promise<Friend | null>
 }
 
-const AppContext = createContext<AppContextValue | null>(null)
+export const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(loadState)
+  const [discoverable, setDiscoverable] = useState<Friend[]>(seedDiscoverableUsers)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
@@ -62,13 +65,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   function addFriend(friendId: string) {
     setState((s) => {
       if (s.friends.some((f) => f.id === friendId)) return s
-      const user = s.discoverableUsers.find((u) => u.id === friendId)
+      const user = discoverable.find((u) => u.id === friendId)
       if (!user) return s
-      return {
-        ...s,
-        friends: [...s.friends, user],
-        discoverableUsers: s.discoverableUsers.filter((u) => u.id !== friendId),
-      }
+      setDiscoverable((d) => d.filter((u) => u.id !== friendId))
+      return { ...s, friends: [...s.friends, user] }
     })
   }
 
@@ -91,9 +91,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, profile }))
   }
 
+  async function searchUsers(query: string): Promise<Friend[]> {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return discoverable.filter((f) => f.pseudo.toLowerCase().includes(q))
+  }
+
+  async function getUserById(id: string): Promise<Friend | null> {
+    return (
+      state.friends.find((f) => f.id === id) ??
+      discoverable.find((f) => f.id === id) ??
+      null
+    )
+  }
+
   return (
     <AppContext.Provider
-      value={{ state, addEvent, togglePresence, addFriend, removeFriend, sendMessage, updateProfile }}
+      value={{
+        state,
+        addEvent,
+        togglePresence,
+        addFriend,
+        removeFriend,
+        sendMessage,
+        updateProfile,
+        searchUsers,
+        getUserById,
+      }}
     >
       {children}
     </AppContext.Provider>

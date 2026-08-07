@@ -1,25 +1,39 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Search, UserPlus, MapPin, X } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import { useNavigate } from 'react-router-dom'
+import type { Friend } from '../types'
 
 export function SearchBar() {
-  const { state, addFriend } = useApp()
+  const { state, addFriend, searchUsers } = useApp()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
+  const [discoverResults, setDiscoverResults] = useState<Friend[]>([])
 
   const q = query.trim().toLowerCase()
+
+  useEffect(() => {
+    if (!q) {
+      setDiscoverResults([])
+      return
+    }
+    let cancelled = false
+    const timer = setTimeout(() => {
+      searchUsers(q).then((results) => {
+        if (!cancelled) setDiscoverResults(results)
+      })
+    }, 200)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [q, searchUsers])
 
   const friendResults = useMemo(() => {
     if (!q) return []
     return state.friends.filter((f) => f.pseudo.toLowerCase().includes(q))
   }, [q, state.friends])
-
-  const discoverResults = useMemo(() => {
-    if (!q) return []
-    return state.discoverableUsers.filter((f) => f.pseudo.toLowerCase().includes(q))
-  }, [q, state.discoverableUsers])
 
   const locationResults = useMemo(() => {
     if (!q) return []
@@ -96,7 +110,10 @@ export function SearchBar() {
                   <img src={f.photoUrl} alt="" className="h-8 w-8 rounded-full" />
                   <span className="flex-1 text-sm text-white">{f.pseudo}</span>
                   <button
-                    onClick={() => addFriend(f.id)}
+                    onClick={() => {
+                      addFriend(f.id)
+                      setDiscoverResults((r) => r.filter((u) => u.id !== f.id))
+                    }}
                     className="flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-500"
                   >
                     <UserPlus size={14} /> Ajouter

@@ -1,11 +1,19 @@
 import { addDays, format } from 'date-fns'
-import type { AppState } from '../types'
+import type { AppState, Friend } from '../types'
 import { avatarFor, bannerFor } from '../utils/avatar'
 
 const today = new Date()
 const d = (offset: number) => format(addDays(today, offset), 'yyyy-MM-dd')
 
 export const ME_ID = 'me'
+
+export const seedDiscoverableUsers: Friend[] = [
+  { id: 'u1', pseudo: 'MaxSpeed_92', photoUrl: avatarFor('MaxSpeed_92') },
+  { id: 'u2', pseudo: 'Nora_Harley', photoUrl: avatarFor('Nora_Harley') },
+  { id: 'u3', pseudo: 'ThomasEvo9', photoUrl: avatarFor('ThomasEvo9') },
+  { id: 'u4', pseudo: 'Camille_CBR', photoUrl: avatarFor('Camille_CBR') },
+  { id: 'u5', pseudo: 'AdamRS3', photoUrl: avatarFor('AdamRS3') },
+]
 
 export const seedState: AppState = {
   profile: {
@@ -22,13 +30,6 @@ export const seedState: AppState = {
     { id: 'f2', pseudo: 'SofiaR6', photoUrl: avatarFor('SofiaR6') },
     { id: 'f3', pseudo: 'Yanis_M3', photoUrl: avatarFor('Yanis_M3') },
     { id: 'f4', pseudo: 'LucieDucati', photoUrl: avatarFor('LucieDucati') },
-  ],
-  discoverableUsers: [
-    { id: 'u1', pseudo: 'MaxSpeed_92', photoUrl: avatarFor('MaxSpeed_92') },
-    { id: 'u2', pseudo: 'Nora_Harley', photoUrl: avatarFor('Nora_Harley') },
-    { id: 'u3', pseudo: 'ThomasEvo9', photoUrl: avatarFor('ThomasEvo9') },
-    { id: 'u4', pseudo: 'Camille_CBR', photoUrl: avatarFor('Camille_CBR') },
-    { id: 'u5', pseudo: 'AdamRS3', photoUrl: avatarFor('AdamRS3') },
   ],
   events: [
     {

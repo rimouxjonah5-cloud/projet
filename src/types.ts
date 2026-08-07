@@ -48,7 +48,6 @@ export interface ChatMessage {
 export interface AppState {
   profile: Profile
   friends: Friend[]
-  discoverableUsers: Friend[]
   events: RassoEvent[]
   locations: Location[]
   presence: string[] // ISO dates where user marked "présent"

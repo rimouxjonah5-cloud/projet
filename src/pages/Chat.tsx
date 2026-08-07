@@ -1,25 +1,33 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Send } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import { avatarFor } from '../utils/avatar'
+import type { Friend } from '../types'
 
 export function Chat() {
   const { friendId } = useParams<{ friendId: string }>()
-  const { state, sendMessage } = useApp()
+  const { state, sendMessage, getUserById } = useApp()
   const navigate = useNavigate()
   const [text, setText] = useState('')
+  const [person, setPerson] = useState<Friend | null>(null)
 
-  const person = useMemo(() => {
-    if (!friendId) return null
+  useEffect(() => {
+    if (!friendId) return
     const fromFriends = state.friends.find((f) => f.id === friendId)
-    if (fromFriends) return fromFriends
-    const fromDiscover = state.discoverableUsers.find((f) => f.id === friendId)
-    if (fromDiscover) return fromDiscover
-    const fromEvent = state.events.find((e) => e.creatorId === friendId)
-    if (fromEvent) return { id: friendId, pseudo: fromEvent.creatorName, photoUrl: fromEvent.creatorPhoto }
-    return { id: friendId, pseudo: 'Utilisateur', photoUrl: avatarFor(friendId) }
-  }, [friendId, state.friends, state.discoverableUsers, state.events])
+    if (fromFriends) {
+      setPerson(fromFriends)
+      return
+    }
+    let cancelled = false
+    getUserById(friendId).then((found) => {
+      if (cancelled) return
+      setPerson(found ?? { id: friendId, pseudo: 'Utilisateur', photoUrl: avatarFor(friendId) })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [friendId, state.friends, getUserById])
 
   const thread = state.messages.filter((m) => m.friendId === friendId)
 
