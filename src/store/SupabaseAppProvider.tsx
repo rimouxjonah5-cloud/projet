@@ -181,6 +181,12 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     supabase.from('presence').upsert({ user_id: userId, present_date: event.date }).then()
   }
 
+  const removeEvent: AppContextValue['removeEvent'] = (eventId) => {
+    if (!supabase || !userId) return
+    setState((s) => ({ ...s, events: s.events.filter((e) => e.id !== eventId) }))
+    supabase.from('events').delete().eq('id', eventId).eq('creator_id', userId).then()
+  }
+
   const togglePresence: AppContextValue['togglePresence'] = (date) => {
     if (!supabase || !userId) return
     const isPresent = state.presence.includes(date)
@@ -285,7 +291,9 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider
       value={{
         state,
+        myId: userId ?? '',
         addEvent,
+        removeEvent,
         togglePresence,
         addFriend,
         removeFriend,

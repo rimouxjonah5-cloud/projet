@@ -16,7 +16,9 @@ function loadState(): AppState {
 
 export interface AppContextValue {
   state: AppState
+  myId: string
   addEvent: (event: Omit<RassoEvent, 'id' | 'creatorId' | 'creatorName' | 'creatorPhoto'>) => void
+  removeEvent: (eventId: string) => void
   togglePresence: (date: string) => void
   addFriend: (friendId: string) => void
   removeFriend: (friendId: string) => void
@@ -51,6 +53,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ],
       presence: s.presence.includes(event.date) ? s.presence : [...s.presence, event.date],
     }))
+  }
+
+  function removeEvent(eventId: string) {
+    setState((s) => ({ ...s, events: s.events.filter((e) => e.id !== eventId) }))
   }
 
   function togglePresence(date: string) {
@@ -109,7 +115,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider
       value={{
         state,
+        myId: 'me',
         addEvent,
+        removeEvent,
         togglePresence,
         addFriend,
         removeFriend,

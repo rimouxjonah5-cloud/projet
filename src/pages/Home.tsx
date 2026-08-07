@@ -1,4 +1,4 @@
-import { Home as HouseIcon, MapPin, Clock, CalendarDays, ScrollText, MessageCircle } from 'lucide-react'
+import { Home as HouseIcon, MapPin, Clock, CalendarDays, ScrollText, MessageCircle, Trash2 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
@@ -22,7 +22,7 @@ function todayISO() {
 }
 
 export function Home() {
-  const { state } = useApp()
+  const { state, myId, removeEvent } = useApp()
   const navigate = useNavigate()
 
   const now = new Date()
@@ -73,6 +73,17 @@ export function Home() {
                   <span className="flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-xs font-medium text-white">
                     {TYPE_EMOJI[ev.type]} {TYPE_LABEL[ev.type]}
                   </span>
+                  {ev.creatorId === myId && (
+                    <button
+                      onClick={() => {
+                        if (confirm('Supprimer ce Rasso ?')) removeEvent(ev.id)
+                      }}
+                      aria-label="Supprimer ce Rasso"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white/70 hover:bg-red-600 hover:text-white"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -109,7 +120,7 @@ export function Home() {
                   <img src={ev.creatorPhoto} alt="" className="h-7 w-7 rounded-full" />
                   <span className="text-xs text-white/70">Organisé par {ev.creatorName}</span>
                 </div>
-                {ev.creatorId !== 'me' && (
+                {ev.creatorId !== myId && (
                   <button
                     onClick={() => navigate(`/messages/${ev.creatorId}`)}
                     className="flex items-center gap-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-500"
