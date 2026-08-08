@@ -66,14 +66,12 @@ button {
   }
 }
 
-/* Fond plein écran desktop (voiture + pilote) derrière l'app mobile centrée */
-.ghost-backdrop {
-  background:
-    radial-gradient(120% 90% at 50% 105%, rgba(120, 10, 10, 0.35), transparent 60%),
-    radial-gradient(140% 100% at 50% 0%, #1a0505 0%, #050505 45%, #000 100%);
+/* Fond plein écran desktop (couleurs de l'Accueil) derrière l'app mobile centrée */
+.desktop-backdrop {
+  background: linear-gradient(to bottom, #000 0%, #450a0a 55%, #991b1b 100%);
 }
 
-@keyframes ghost-beam-spin {
+@keyframes backdrop-beam-spin {
   from {
     transform: translate(-50%, -50%) rotate(0deg);
   }
@@ -82,7 +80,7 @@ button {
   }
 }
 
-.ghost-backdrop-beam {
+.desktop-backdrop-beam {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -91,27 +89,74 @@ button {
   background: conic-gradient(
     from 0deg,
     transparent 0deg,
-    rgba(255, 40, 40, 0) 300deg,
-    rgba(255, 60, 60, 0.16) 330deg,
-    rgba(255, 90, 90, 0.28) 345deg,
-    rgba(255, 40, 40, 0) 360deg
+    rgba(255, 80, 80, 0) 300deg,
+    rgba(255, 100, 100, 0.14) 330deg,
+    rgba(255, 140, 140, 0.24) 345deg,
+    rgba(255, 80, 80, 0) 360deg
   );
-  animation: ghost-beam-spin 100s linear infinite;
+  animation: backdrop-beam-spin 110s linear infinite;
   will-change: transform;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ghost-backdrop-beam {
-    animation: none;
-  }
+.desktop-backdrop-bolt {
+  position: absolute;
+  top: 50%;
+  width: 26vw;
+  max-width: 380px;
+  color: #ff2323;
+  opacity: 0.1;
+  filter: drop-shadow(0 0 40px rgba(255, 30, 30, 0.35));
+}
+.desktop-backdrop-bolt--left {
+  left: -4vw;
+  transform: translateY(-50%) rotate(-14deg);
+}
+.desktop-backdrop-bolt--right {
+  right: -4vw;
+  transform: translateY(-50%) rotate(14deg) scaleX(-1);
 }
 
-.ghost-backdrop-scene {
+.desktop-backdrop-word {
   position: absolute;
-  bottom: 4vh;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(64vw, 1100px);
-  aspect-ratio: 900 / 500;
-  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.6));
+  top: 50%;
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(48px, 8vw, 140px);
+  letter-spacing: 0.08em;
+  color: #fff;
+  opacity: 0.05;
+  white-space: nowrap;
+  user-select: none;
+}
+.desktop-backdrop-word--left {
+  left: 0;
+  transform: translateY(-50%) rotate(-90deg) translateX(-50%);
+  transform-origin: left top;
+}
+.desktop-backdrop-word--right {
+  right: 0;
+  transform: translateY(-50%) rotate(90deg) translateX(50%);
+  transform-origin: right top;
+}
+
+.desktop-backdrop-road {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8vh;
+  height: 3px;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.16) 0,
+    rgba(255, 255, 255, 0.16) 40px,
+    transparent 40px,
+    transparent 90px
+  );
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-backdrop-beam {
+    animation: none;
+  }
 }
