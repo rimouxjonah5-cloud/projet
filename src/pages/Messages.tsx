@@ -145,7 +145,8 @@ function Conversation({
   const messages = messagesQuery.data ?? []
 
   return (
-    <div className="fixed inset-0 z-30 mx-auto flex max-w-lg flex-col bg-[#070b16]">
+    <div className="fixed inset-0 z-50 flex justify-center bg-[#070b16]">
+      <div className="flex w-full max-w-lg flex-col">
       <div className="flex items-center gap-3 border-b border-white/10 px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-3">
         <button type="button" onClick={onBack} className="text-white/70 hover:text-white">
           <ArrowLeft size={20} />
@@ -190,6 +191,7 @@ function Conversation({
         >
           <Send size={16} />
         </button>
+      </div>
       </div>
     </div>
   )
