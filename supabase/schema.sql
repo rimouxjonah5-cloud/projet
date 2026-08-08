@@ -316,19 +316,19 @@ insert into public.sport_events (id, host_id, host_pseudo, title, sport, event_d
   ('55555555-5555-5555-5555-555555555555', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'LéaSprint',
     'Match amical 5v5', 'football', current_date, '18:30', 'match', 'en_cours',
     'Stade Municipal Voltaire', '12 rue Voltaire, 75011 Paris', 'On cherche 4 joueurs pour compléter les équipes.',
-    10, '2 équipes de 5', array['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'], true),
+    10, '2 équipes de 5', array['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa']::uuid[], true),
   ('66666666-6666-6666-6666-666666666666', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'MaxHoops',
     'Session basket urgente', 'basketball', current_date, '20:00', 'seance', 'urgent',
     'Complexe Sportif Bercy', '8 boulevard de Bercy, 75012 Paris', 'Il manque 1 joueur pour le 3v3, ce soir !',
-    6, '3v3', array['bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'], false),
+    6, '3v3', array['bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb']::uuid[], false),
   ('77777777-7777-7777-7777-777777777777', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'SofiaSmash',
     'Tournoi de tennis printemps', 'tennis', current_date + interval '3 days', '09:00', 'tournoi', 'prevu',
     'Tennis Club du Bois', '2 route de la Reine, 75016 Paris', 'Tournoi amical simple messieurs/dames, niveau intermédiaire.',
-    16, 'Élimination directe', array['cccccccc-cccc-cccc-cccc-cccccccccccc'], false),
+    16, 'Élimination directe', array['cccccccc-cccc-cccc-cccc-cccccccccccc']::uuid[], false),
   ('88888888-8888-8888-8888-888888888888', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'TomFit',
     'Sortie natation détente', 'natation', current_date + interval '1 day', '12:00', 'sortie', 'prevu',
     'Piscine et Salle de Sport Nation', '15 place de la Nation, 75011 Paris', 'Quelques longueurs entre midi et deux, tous niveaux.',
-    8, '', array['dddddddd-dddd-dddd-dddd-dddddddddddd'], false);
+    8, '', array['dddddddd-dddd-dddd-dddd-dddddddddddd']::uuid[], false);
 
 -- 2 avis de démo
 insert into public.venue_reviews (venue_id, venue_name, rating, pros, cons, author_id, author_pseudo) values
