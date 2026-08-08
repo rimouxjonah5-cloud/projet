@@ -2,7 +2,7 @@ export function DesktopBackdrop() {
   return (
     <div
       aria-hidden="true"
-      className="desktop-backdrop pointer-events-none fixed inset-0 z-0 hidden overflow-hidden lg:block"
+      className="desktop-backdrop pointer-events-none fixed inset-0 z-0 hidden overflow-hidden md:block"
     >
       <div className="desktop-backdrop-beam" />
 

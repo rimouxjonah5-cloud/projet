@@ -8,7 +8,7 @@ export function Layout() {
   return (
     <>
       <DesktopBackdrop />
-      <div className="relative z-10 mx-auto flex min-h-svh max-w-md flex-col bg-black text-white lg:shadow-2xl lg:shadow-black">
+      <div className="relative z-10 mx-auto flex min-h-svh max-w-md flex-col bg-black text-white md:shadow-2xl md:shadow-black">
         <header className="sticky top-0 z-40 border-b border-white/10 bg-black/90 px-4 pb-3 pt-4 backdrop-blur">
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
