@@ -1,25 +1,35 @@
-# RassoGo
+# Sport Connect
 
-Application mobile-first (React + Vite + TypeScript + Tailwind CSS) pour organiser et
-rejoindre des rassemblements ("Rasso") voiture, moto ou mixte.
+Application mobile-first (React + Vite + TypeScript + Tailwind CSS) pour se connecter
+avec des sportifs près de chez soi, organiser des matchs et gérer ses séances
+d'entraînement. Design sombre et moderne, accent émeraude.
 
 ## Fonctionnalités
 
-- **Barre de recherche** en haut de l'app pour trouver des amis et des lieux disponibles
-  pour organiser un Rasso.
-- **Accueil** : fil de tous les Rasso créés par la communauté (fond noir/rouge fusionné),
-  avec adresse, date, heure, règles, conditions et un bouton pour contacter le créateur.
-- **Agenda** : calendrier mensuel où l'on marque les jours où l'on est présent en cliquant
-  dessus ; les jours avec un Rasso sont indiqués par un point.
-- **Créer** (gros bouton `+`) : formulaire pour publier un Rasso — choix du type
-  (voiture / moto / mixte), date, heure, emplacement (avec suggestions de lieux
-  disponibles), règles et conditions.
-- **Message** : liste des amis ajoutés et messagerie pour discuter avec eux.
-- **Profil** : pseudo, âge, photo de profil, bannière, description, et photos de la
-  voiture / moto affichées sur le profil.
+- **Recherche** en haut de l'app avec deux onglets : Amis (profils) et Complexes (lieux).
+- **Accueil** : alertes sport en cours/urgentes, tournois actuels, joueurs près de toi
+  (suivre / message).
+- **Plan** : carte sombre (Leaflet) avec les complexes sportifs et les amis suivis en
+  temps réel, géolocalisation live, fiche complexe avec itinéraire GPS.
+- **Planning** : calendrier mensuel, création d'évènements (séance/match/tournoi/sortie),
+  liste des évènements du jour.
+- **Avis** : notation et retours sur les complexes sportifs.
+- **Messages** : messagerie en temps réel avec les sportifs suivis.
+- **Profil** : photo, stats, trophées, paramètres (rayon, notifications), sports
+  pratiqués.
+- **Boutique** : boost de profil, badge de certification, boost d'évènement (paiement
+  non connecté, activation directe pour la démo).
+- **Onboarding** en 3 étapes obligatoires avant l'accès à l'application.
 
-Les données (profil, amis, événements, messages, présence) sont conservées en local
-(`localStorage`) — aucun backend n'est requis pour lancer l'application.
+## Backend
+
+L'application utilise **Supabase** (Postgres + Auth + Realtime + Storage). Le schéma
+complet (tables, RLS, fonctions, données de démo) se trouve dans `supabase/schema.sql` —
+à exécuter une fois dans l'éditeur SQL du projet Supabase.
+
+Sans configuration Supabase (`VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` absents),
+les écrans nécessitant des données afficheront une erreur de connexion : configure ces
+variables (voir `.env.example`) pour une expérience complète.
 
 ## Installation sur téléphone (PWA)
 
@@ -30,13 +40,11 @@ en HTTPS, n'importe qui peut l'installer sur son téléphone sans passer par un 
   "Installer l'application".
 - **iPhone (Safari)** : ouvrir le lien → bouton Partager → "Sur l'écran d'accueil".
 
-Une fois installée, Rasso apparaît avec sa propre icône, s'ouvre en plein écran (sans
-barre de navigateur) et reste disponible hors connexion grâce à son service worker.
-
 ## Démarrer
 
 ```bash
 npm install
+cp .env.example .env   # renseigner VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY
 npm run dev
 ```
 

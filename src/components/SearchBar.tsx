@@ -1,153 +1,126 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Search, UserPlus, MapPin, X } from 'lucide-react'
-import { useApp } from '../store/AppContext'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { VerifiedName } from './VerifiedName'
-import { Avatar } from './Avatar'
-import type { Friend } from '../types'
+import { Search } from 'lucide-react'
+import { searchProfiles, searchVenues } from '../api/entities'
+import { useProfile } from '../hooks/useProfile'
+import type { Profile, Venue } from '../types'
+
+type Tab = 'amis' | 'complexes'
 
 export function SearchBar() {
-  const { state, addFriend, searchUsers, isOnline } = useApp()
+  const { userId } = useProfile()
   const navigate = useNavigate()
+  const [tab, setTab] = useState<Tab>('amis')
   const [query, setQuery] = useState('')
-  const [open, setOpen] = useState(false)
-  const [discoverResults, setDiscoverResults] = useState<Friend[]>([])
-
-  const q = query.trim().toLowerCase()
+  const [profileResults, setProfileResults] = useState<Profile[]>([])
+  const [venueResults, setVenueResults] = useState<Venue[]>([])
 
   useEffect(() => {
+    let active = true
+    const q = query.trim()
     if (!q) {
-      setDiscoverResults([])
+      setProfileResults([])
+      setVenueResults([])
       return
     }
-    let cancelled = false
-    const timer = setTimeout(() => {
-      searchUsers(q).then((results) => {
-        if (!cancelled) setDiscoverResults(results)
-      })
-    }, 200)
+    const timeout = setTimeout(() => {
+      if (tab === 'amis') {
+        searchProfiles(q, userId ?? '').then((r) => active && setProfileResults(r))
+      } else {
+        searchVenues(q).then((r) => active && setVenueResults(r))
+      }
+    }, 250)
     return () => {
-      cancelled = true
-      clearTimeout(timer)
+      active = false
+      clearTimeout(timeout)
     }
-  }, [q, searchUsers])
+  }, [query, tab, userId])
 
-  const friendResults = useMemo(() => {
-    if (!q) return []
-    return state.friends.filter((f) => f.pseudo.toLowerCase().includes(q))
-  }, [q, state.friends])
-
-  const locationResults = useMemo(() => {
-    if (!q) return []
-    return state.locations.filter(
-      (l) => l.name.toLowerCase().includes(q) || l.address.toLowerCase().includes(q),
-    )
-  }, [q, state.locations])
-
-  const hasResults = friendResults.length + discoverResults.length + locationResults.length > 0
-
-  function useLocation(id: string) {
-    const loc = state.locations.find((l) => l.id === id)
-    if (!loc) return
-    navigate('/create', { state: { presetAddress: `${loc.name}, ${loc.address}`, presetType: loc.type } })
-    setOpen(false)
+  function openProfile(p: Profile) {
     setQuery('')
+    navigate(`/messages?with=${p.id}`)
   }
 
+  function openVenue(v: Venue) {
+    setQuery('')
+    navigate(`/plan?venue=${v.id}`)
+  }
+
+  const results = tab === 'amis' ? profileResults : venueResults
+
   return (
-    <div className="relative">
-      <div className="flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-4 py-2.5 backdrop-blur">
-        <Search size={18} className="text-white/60 shrink-0" />
-        <input
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value)
-            setOpen(true)
-          }}
-          onFocus={() => setOpen(true)}
-          placeholder="Rechercher des amis ou un lieu de Rasso..."
-          className="w-full bg-transparent text-sm text-white placeholder-white/50 outline-none"
-        />
-        {query && (
-          <button
-            aria-label="Effacer"
-            onClick={() => setQuery('')}
-            className="text-white/50 hover:text-white shrink-0"
-          >
-            <X size={16} />
-          </button>
-        )}
+    <div className="w-full">
+      <div className="mb-2 flex gap-1 rounded-full bg-white/[0.04] p-1">
+        <button
+          type="button"
+          onClick={() => setTab('amis')}
+          className={`flex-1 rounded-full py-1.5 text-xs font-semibold transition-colors ${
+            tab === 'amis' ? 'bg-emerald-400 text-[#0b1020]' : 'text-white/50'
+          }`}
+        >
+          Amis
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('complexes')}
+          className={`flex-1 rounded-full py-1.5 text-xs font-semibold transition-colors ${
+            tab === 'complexes' ? 'bg-emerald-400 text-[#0b1020]' : 'text-white/50'
+          }`}
+        >
+          Complexes
+        </button>
       </div>
 
-      {open && q && (
-        <div className="absolute z-30 mt-2 w-full rounded-2xl border border-white/10 bg-neutral-900 shadow-xl max-h-96 overflow-y-auto">
-          {!hasResults && (
-            <p className="p-4 text-sm text-white/50">Aucun résultat pour « {query} »</p>
-          )}
+      <div className="relative">
+        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={tab === 'amis' ? 'Rechercher un pseudo, un prénom...' : 'Rechercher un complexe, une adresse...'}
+          className="w-full rounded-2xl border border-white/10 bg-white/[0.04] py-2.5 pl-9 pr-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-400"
+        />
 
-          {friendResults.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs uppercase tracking-wide text-white/40">Mes amis</p>
-              {friendResults.map((f) => (
-                <button
-                  key={f.id}
-                  onClick={() => {
-                    navigate(`/messages/${f.id}`)
-                    setOpen(false)
-                  }}
-                  className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-white/5"
-                >
-                  <Avatar src={f.photoUrl} size="h-8 w-8" online={isOnline(f.id)} />
-                  <VerifiedName name={f.pseudo} className="text-sm text-white" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {discoverResults.length > 0 && (
-            <div className="p-2 border-t border-white/10">
-              <p className="px-2 py-1 text-xs uppercase tracking-wide text-white/40">Trouver des amis</p>
-              {discoverResults.map((f) => (
-                <div key={f.id} className="flex items-center gap-3 rounded-xl px-2 py-2">
-                  <Avatar src={f.photoUrl} size="h-8 w-8" online={isOnline(f.id)} />
-                  <VerifiedName name={f.pseudo} className="flex-1 text-sm text-white" />
+        {query.trim() && (
+          <div className="absolute inset-x-0 top-full z-50 mt-2 max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-[#0b1020] shadow-xl">
+            {results.length === 0 && <p className="px-4 py-3 text-sm text-white/40">Aucun résultat.</p>}
+            {tab === 'amis'
+              ? profileResults.map((p) => (
                   <button
-                    onClick={() => {
-                      addFriend(f.id)
-                      setDiscoverResults((r) => r.filter((u) => u.id !== f.id))
-                    }}
-                    className="flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-500"
+                    key={p.id}
+                    type="button"
+                    onClick={() => openProfile(p)}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-white/5"
                   >
-                    <UserPlus size={14} /> Ajouter
+                    <img
+                      src={p.photo_url ?? undefined}
+                      alt={p.pseudo}
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-white">{p.pseudo}</p>
+                      <p className="text-xs text-white/40">
+                        {p.first_name} {p.last_name}
+                      </p>
+                    </div>
                   </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {locationResults.length > 0 && (
-            <div className="p-2 border-t border-white/10">
-              <p className="px-2 py-1 text-xs uppercase tracking-wide text-white/40">Lieux disponibles</p>
-              {locationResults.map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => useLocation(l.id)}
-                  className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-white/5"
-                >
-                  <MapPin size={18} className="text-red-500 shrink-0" />
-                  <span className="flex-1">
-                    <span className="block text-sm text-white">{l.name}</span>
-                    <span className="block text-xs text-white/50">{l.address}</span>
-                  </span>
-                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase text-white/60">
-                    {l.type}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+                ))
+              : venueResults.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => openVenue(v)}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-white/5"
+                  >
+                    <img src={v.photo_url ?? undefined} alt={v.name} className="h-8 w-8 rounded-lg object-cover" />
+                    <div>
+                      <p className="text-sm font-medium text-white">{v.name}</p>
+                      <p className="text-xs text-white/40">{v.address}</p>
+                    </div>
+                  </button>
+                ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
