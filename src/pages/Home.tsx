@@ -1,146 +1,107 @@
-import { Home as HouseIcon, MapPin, Clock, CalendarDays, ScrollText, MessageCircle, Trash2 } from 'lucide-react'
-import { VerifiedName } from '../components/VerifiedName'
-import { Avatar } from '../components/Avatar'
-import { format, parseISO } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../store/AppContext'
-import type { VehicleType } from '../types'
-
-const TYPE_LABEL: Record<VehicleType, string> = {
-  voiture: 'Voiture',
-  moto: 'Moto',
-  mixte: 'Mixte',
-}
-
-const TYPE_EMOJI: Record<VehicleType, string> = {
-  voiture: '🚗',
-  moto: '🏍️',
-  mixte: '🔀',
-}
-
-function todayISO() {
-  return format(new Date(), 'yyyy-MM-dd')
-}
+import { follow, joinEvent, listEvents, listFollowingIds, listNearbyProfiles, unfollow } from '../api/entities'
+import { useProfile } from '../hooks/useProfile'
+import { SectionTitle } from '../components/SectionTitle'
+import { EventCard } from '../components/EventCard'
+import { PlayerCard } from '../components/PlayerCard'
 
 export function Home() {
-  const { state, myId, removeEvent, isOnline } = useApp()
+  const { profile, userId } = useProfile()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  const now = new Date()
-  const today = todayISO()
+  const eventsQuery = useQuery({ queryKey: ['events'], queryFn: listEvents })
+  const playersQuery = useQuery({
+    queryKey: ['nearby-profiles', userId],
+    queryFn: () => listNearbyProfiles(userId as string),
+    enabled: Boolean(userId),
+  })
+  const followingQuery = useQuery({
+    queryKey: ['following', userId],
+    queryFn: () => listFollowingIds(userId as string),
+    enabled: Boolean(userId),
+  })
 
-  const events = state.events
-    // un Rasso disparaît de l'accueil le lendemain de sa date
-    .filter((ev) => ev.date >= today)
-    .sort((a, b) => (a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date)))
+  const joinMutation = useMutation({
+    mutationFn: joinEvent,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['events'] }),
+  })
+
+  const followMutation = useMutation({
+    mutationFn: async (targetId: string) => {
+      if (!userId) return
+      if (followingQuery.data?.includes(targetId)) await unfollow(userId, targetId)
+      else await follow(userId, targetId)
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['following', userId] }),
+  })
+
+  if (!profile) return null
+
+  const events = eventsQuery.data ?? []
+  const alerts = events.filter((e) => e.status === 'en_cours' || e.status === 'urgent')
+  const tournaments = events.filter((e) => e.kind === 'tournoi')
+  const players = playersQuery.data ?? []
+  const followingIds = followingQuery.data ?? []
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-black via-red-950 to-red-800">
-      <div className="flex items-center gap-2 px-4 pt-6">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
-          <HouseIcon size={18} className="text-red-400" />
-        </span>
-        <div>
-          <h1 className="text-lg font-bold tracking-tight text-white">Accueil</h1>
-          <p className="text-xs text-white/60">Tous les Rasso créés par la communauté</p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="font-display text-2xl font-extrabold text-white">
+          Salut <span className="text-emerald-400">{profile.pseudo}</span> 👋
+        </h1>
+        <p className="mt-1 text-sm text-white/50">
+          Rayon de {profile.radius_km} km · {profile.sports.length} sport{profile.sports.length > 1 ? 's' : ''}{' '}
+          pratiqué{profile.sports.length > 1 ? 's' : ''}
+        </p>
+      </div>
+
+      <section>
+        <SectionTitle>Alertes sport</SectionTitle>
+        {alerts.length === 0 && <p className="text-sm text-white/40">Aucune alerte pour le moment.</p>}
+        <div className="space-y-3">
+          {alerts.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              joined={userId ? event.participants.includes(userId) : false}
+              onJoin={() => joinMutation.mutate(event.id)}
+            />
+          ))}
         </div>
-      </div>
+      </section>
 
-      <div className="flex flex-col gap-4 px-4 py-5">
-        {events.length === 0 && (
-          <p className="mt-10 text-center text-sm text-white/50">
-            Aucun Rasso pour le moment. Crée le premier avec le bouton +
-          </p>
-        )}
+      <section>
+        <SectionTitle>Tournois actuels</SectionTitle>
+        {tournaments.length === 0 && <p className="text-sm text-white/40">Aucun tournoi en ce moment.</p>}
+        <div className="space-y-3">
+          {tournaments.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              joined={userId ? event.participants.includes(userId) : false}
+              onJoin={() => joinMutation.mutate(event.id)}
+            />
+          ))}
+        </div>
+      </section>
 
-        {events.map((ev) => {
-          const isOngoing =
-            ev.date === today &&
-            new Date(`${ev.date}T${ev.time}`) <= now &&
-            (!ev.endTime || now <= new Date(`${ev.date}T${ev.endTime}`))
-
-          return (
-            <article
-              key={ev.id}
-              className={`overflow-hidden rounded-2xl border bg-black/50 shadow-lg shadow-black/40 backdrop-blur ${
-                isOngoing ? 'border-red-500' : 'border-white/10'
-              }`}
-            >
-              <div className="flex items-center justify-between bg-gradient-to-r from-red-700/80 to-black/60 px-4 py-3">
-                <h2 className="text-base font-semibold text-white">{ev.title}</h2>
-                <div className="flex items-center gap-2">
-                  {isOngoing && (
-                    <span className="flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white animate-pulse">
-                      <span className="h-1.5 w-1.5 rounded-full bg-white" /> EN COURS
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-xs font-medium text-white">
-                    {TYPE_EMOJI[ev.type]} {TYPE_LABEL[ev.type]}
-                  </span>
-                  {ev.creatorId === myId && (
-                    <button
-                      onClick={() => {
-                        if (confirm('Supprimer ce Rasso ?')) removeEvent(ev.id)
-                      }}
-                      aria-label="Supprimer ce Rasso"
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white/70 hover:bg-red-600 hover:text-white"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2 px-4 py-3 text-sm text-white/85">
-                <p className="flex items-center gap-2">
-                  <MapPin size={15} className="text-red-400 shrink-0" />
-                  {ev.address}
-                </p>
-                <p className="flex items-center gap-2">
-                  <CalendarDays size={15} className="text-red-400 shrink-0" />
-                  {format(parseISO(ev.date), 'EEEE d MMMM yyyy', { locale: fr })}
-                </p>
-                <p className="flex items-center gap-2">
-                  <Clock size={15} className="text-red-400 shrink-0" />
-                  {ev.time}
-                  {ev.endTime && ` – ${ev.endTime}`}
-                </p>
-
-                {ev.rules && (
-                  <div className="mt-2 rounded-xl bg-white/5 p-3">
-                    <p className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/50">
-                      <ScrollText size={13} /> Règles
-                    </p>
-                    <p className="text-sm text-white/80">{ev.rules}</p>
-                  </div>
-                )}
-
-                {ev.conditions && (
-                  <p className="text-xs text-white/50">Conditions : {ev.conditions}</p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between border-t border-white/10 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Avatar src={ev.creatorPhoto} size="h-7 w-7" online={isOnline(ev.creatorId)} />
-                  <span className="text-xs text-white/70">
-                    Organisé par <VerifiedName name={ev.creatorName} />
-                  </span>
-                </div>
-                {ev.creatorId !== myId && (
-                  <button
-                    onClick={() => navigate(`/messages/${ev.creatorId}`)}
-                    className="flex items-center gap-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-500"
-                  >
-                    <MessageCircle size={14} /> Contacter
-                  </button>
-                )}
-              </div>
-            </article>
-          )
-        })}
-      </div>
+      <section>
+        <SectionTitle>Joueurs près de toi</SectionTitle>
+        {players.length === 0 && <p className="text-sm text-white/40">Aucun joueur trouvé pour l'instant.</p>}
+        <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
+          {players.map((p) => (
+            <PlayerCard
+              key={p.id}
+              profile={p}
+              isFollowing={followingIds.includes(p.id)}
+              onMessage={() => navigate(`/messages?with=${p.id}`)}
+              onToggleFollow={() => followMutation.mutate(p.id)}
+            />
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

@@ -1,5 +1,11 @@
 @import 'tailwindcss';
 
+@theme {
+  --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #070b16;
+  --color-surface: #0b1020;
+}
+
 :root {
   color-scheme: dark;
 }
@@ -12,7 +18,8 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #000;
+  background: #070b16;
+  color: #fff;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -20,7 +27,7 @@ body {
 @media (min-width: 768px) {
   html,
   body {
-    background: linear-gradient(to bottom, #000 0%, #450a0a 55%, #991b1b 100%);
+    background: radial-gradient(circle at 50% 0%, #0b1020 0%, #070b16 60%, #050810 100%);
     background-attachment: fixed;
   }
 }
@@ -45,126 +52,48 @@ button {
   scrollbar-width: none;
 }
 
-@keyframes ghost-shift {
-  0% {
-    background-position: 0% 50%;
+.leaflet-container {
+  background: #0b1020 !important;
+  font-family: inherit;
+}
+
+.sc-calendar {
+  --rdp-accent-color: #34d399;
+  --rdp-accent-background-color: rgba(52, 211, 153, 0.15);
+  --rdp-today-color: #34d399;
+  color: #fff;
+}
+.sc-calendar .rdp-day_button {
+  color: #fff;
+}
+.sc-calendar .rdp-weekday {
+  color: rgba(255, 255, 255, 0.4);
+}
+.sc-calendar .has-event .rdp-day_button::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #34d399;
+}
+.sc-calendar .rdp-day {
+  position: relative;
+}
+
+@keyframes pulse-live {
+  0%,
+  100% {
+    opacity: 1;
   }
   50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
+    opacity: 0.5;
   }
 }
 
-.ghost-name {
-  background-image: linear-gradient(90deg, #ff2323, #1a1a1a, #ff2323, #7a0000, #ff2323);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 4px rgba(255, 35, 35, 0.5));
-  animation: ghost-shift 3.5s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ghost-name {
-    animation: none;
-    background-position: 0% 50%;
-  }
-}
-
-/* Fond plein écran desktop (couleurs de l'Accueil) derrière l'app mobile centrée */
-.desktop-backdrop {
-  background: linear-gradient(to bottom, #000 0%, #450a0a 55%, #991b1b 100%);
-}
-
-@keyframes backdrop-beam-spin {
-  from {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
-.desktop-backdrop-beam {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 160vmax;
-  height: 160vmax;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    rgba(255, 80, 80, 0) 300deg,
-    rgba(255, 100, 100, 0.14) 330deg,
-    rgba(255, 140, 140, 0.24) 345deg,
-    rgba(255, 80, 80, 0) 360deg
-  );
-  animation: backdrop-beam-spin 110s linear infinite;
-  will-change: transform;
-}
-
-.desktop-backdrop-bolt {
-  position: absolute;
-  top: 50%;
-  width: 26vw;
-  max-width: 380px;
-  color: #ff2323;
-  opacity: 0.1;
-  filter: drop-shadow(0 0 40px rgba(255, 30, 30, 0.35));
-}
-.desktop-backdrop-bolt--left {
-  left: -4vw;
-  transform: translateY(-50%) rotate(-14deg);
-}
-.desktop-backdrop-bolt--right {
-  right: -4vw;
-  transform: translateY(-50%) rotate(14deg) scaleX(-1);
-}
-
-.desktop-backdrop-word {
-  position: absolute;
-  top: 50%;
-  margin: 0;
-  font-weight: 800;
-  font-size: clamp(48px, 8vw, 140px);
-  letter-spacing: 0.08em;
-  color: #fff;
-  opacity: 0.05;
-  white-space: nowrap;
-  user-select: none;
-}
-.desktop-backdrop-word--left {
-  left: 0;
-  transform: translateY(-50%) rotate(-90deg) translateX(-50%);
-  transform-origin: left top;
-}
-.desktop-backdrop-word--right {
-  right: 0;
-  transform: translateY(-50%) rotate(90deg) translateX(50%);
-  transform-origin: right top;
-}
-
-.desktop-backdrop-road {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 8vh;
-  height: 3px;
-  background: repeating-linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.16) 0,
-    rgba(255, 255, 255, 0.16) 40px,
-    transparent 40px,
-    transparent 90px
-  );
-  opacity: 0.5;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .desktop-backdrop-beam {
-    animation: none;
-  }
+.animate-pulse-live {
+  animation: pulse-live 1.6s ease-in-out infinite;
 }

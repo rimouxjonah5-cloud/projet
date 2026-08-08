@@ -1,4 +1,4 @@
-const COLORS = ['#dc2626', '#111111', '#7f1d1d', '#991b1b', '#450a0a', '#b91c1c']
+const COLORS = ['#059669', '#0b1020', '#0d9488', '#065f46', '#164e63', '#047857']
 
 function hash(str: string): number {
   let h = 0
